@@ -1,0 +1,111 @@
+\section{Our Approach}
+\begin{algorithm}[]
+
+	\DontPrintSemicolon
+	\caption{BCFramework($G,p,q,\epsilon,\delta$)}
+
+	\KwIn{A bipartite graph $G=(U,V,E)$, integers $p$, $q$ and, accuracy parameters $\epsilon, \delta$}
+	\KwOut{an estimation $\estcnt$ for $\cnt$}
+		\label{alg:BCFramework}
+	Arrange $U$ and $V$ in some order \\
+	\scriptsize \tcp{Stage-I: construct a sample space $\sampelspace$, represented by a compact structure $\mathbb{S}$}
+	\normalsize $\mathbb{S} \gets  \{(\emptyset,\emptyset,U,V )\}$
+	\While{the construction stopping condition is not satisfied}{
+		Choose a sample subspace $(R_U,R_V,S_U,S_V)$ and remove it from $\mathbb{S}$\;
+		\scriptsize \tcp{Refine the subspace $(R_U,R_V,S_U,S_V)$ by partitioning it}
+		\normalsize \For{each $e(u,v)\in S_U \cup S_V$}{
+			Add $(R_U \cup u,R_V \cup v, N_{>u}(v) \cap S_U ,N_{>v}(u)\cap S_V)$
+		}
+	}
+	\scriptsize \tcp{Stage-II: sample from \shadow get $\estcnt$}
+	\normalsize $|\sampelspace| = \sum_{(R_U, R_V, S_U, S_V) \in \mathbb{S}} |\mathcal{P}_{(p-|R_U|,q-|R_V|)}(S_U,S_V)| $
+	$s \leftarrow 0 , t \leftarrow 0$\;
+
+	\While{the sampling stopping condition is not satisfied}{
+		Sample a subspace $(R_U,R_V,S_U,S_V)$ from $\mathcal{S}$ with probability $\frac{|\mathcal{P}_{(p-|R_U|,q-|R_V|)}(S_U,S_V)|}
+		{|\mathcal{S}_{(p,q)}(G)|}$\;
+		Sample an element $P$ u.a.r. from $\mathcal{P}_{(p-|R_U|,q-|R_V|)}(S_U,S_V)$\;
+		\If{$P$ forms a \biclique in $G$}{
+			$s \leftarrow s + 1$\;
+		}
+		$t \leftarrow t + 1$\;
+	}
+	\Return  $\estcnt \gets |\sampelspace| \cdot \frac{s}{t}$
+
+\end{algorithm}
+
+
+
+
+
+\red{add intro here}\\
+
+Our framework for estimating the $(p,q)$-biclique count is presented in Algorithm \ref{alg:BCFramework} which operates in two stages.
+
+In Stage I (Lines 1–6), we construct a sample space $\mathcal{S}_{(p,q)}(G)$ that meets the following conditions:
+
+\begin{itemize}
+
+\item $\sampelspace$ is a superset of the set of all $(p,q)$-bicliques in $G$, denoted as $\setbiclique$, \ie $\setbiclique \subseteq \sampelspace$.
+\item Total count of sample elements in $\sampelspace$ can be computed efficiently.
+\item We can efficiently sample elements uniformly at random (u.a.r.) from $\mathcal{S}_{(p,q)}(G)$.
+
+\end{itemize}
+
+ Each element of the sample space $\mathcal{S}_{(p,q)}(G)$ is a pair of vertex sets $(U_p, V_q)$, where $U_p \subseteq U$ and $V_q \subseteq V$, such that $|U_p|=p$ and $|V_q|=q$ with some additional constraints.
+In Stage II (Lines 7–12), random samples are drawn from the sample space $\sampelspace$, and the $(p,q)$-biclique count $\cnt$ is estimated as $|\sampelspace|$ multiplied by the fraction of samples that form $(p,q)$-bicliques. Specifically, if $t$ samples are drawn from $\sampelspace$, and for each sample $i$, $X_i = 1$ if the sample forms a $(p,q)$-biclique in $G$, and $X_i = 0$ otherwise, then the estimate of $\cnt$ is given by:
+
+\begin{equation}
+	\cnt = |\sampelspace| \cdot \frac{1}{t} \sum_{i=1}^{t} X_i \label{eq}
+\end{equation}
+
+The core idea involves defining the $(p,q)$-biclique density of the sample space $\sampelspace$ as:
+
+\begin{equation} \bicliquedensityshadow = \frac{\cnt}{|\sampelspace|} \label{eq
+} \end{equation}
+
+This value lies between 0 and 1. Since $\cnt$ is fixed, the $(p,q)$-biclique density depends only on the chosen sample space $\sampelspace$. Different sample spaces will yield different values of $\mu_{\sampelspace}$. Therefore, $\cnt$ can be expressed as:
+
+\begin{equation} \cnt = |\sampelspace| \cdot \mu_{\mathcal{S}_{(p,q)}(G)} \end{equation}
+
+The task then becomes estimating $\mu_{\sampelspace}$, under the assumption that $|\sampelspace|$ can be efficiently determined. Algorithm \ref{alg:BCFramework} estimates $\mu_{\mathcal{S}_{(p,q)}(G)}$ using the empirical mean $\hat{\mu}$ from $t$ random samples, calculated as:
+
+\begin{equation} \hat{\mu} = \frac{1}{t} \sum_{i=1}^{t} X_i \label{eq
+} \end{equation}
+
+Thus, the estimate for $\cnt$ becomes:
+
+\begin{equation} \estcnt = |\mathcal{S}_{(p,q)}(G)| \cdot \hat{\mu} \end{equation}
+
+This provides an unbiased estimate for $\cnt$.
+
+\subsection{BC-Shadow}
+The core idea of our algorithm, is to sample two vertex sets with from $U$ and $V$ with cardinalities $|p|$ and $|q|$ respectively, and then verify whether these sets form a biclique. A straightforward approach to sample a $(p,q)$-biclique would be to select all possible subsets of $p$ vertices from $U$ and $q$ vertices from $V$, which leads to an unfeasible large sample space for large graphs, i.e., $\binom{|U|}{p} \cdot \binom{|V|}{q}$. Such an approach is computationally impractical due to the excessive memory requirements.To mitigate this, we need to reduce the sample space by eliminating vertex sets that do not form a biclique. In this section, we introduce a novel edge oriented sample space refinement technique, termed \textit{BC-Shadow}, which is inspired by the notion of the shadow that was originally introduced for $k$-clique counting \cite{turanshadow}, was formally defined in \cite{citation}.
+
+\begin{definition}[BC-Shadow]
+	Let $G = (U, V, E)$ be a bipartite graph, and let $p$ and $q$ be two integers. The \textbf{BC-Shadow} $\mathbb{S}$ is a quadruple $(R_U, R_V, S_U, S_V)$ representing a sampling space, with the following properties:
+	\begin{itemize}
+		\item $R_U \subseteq U$ and $R_V \subseteq V$, such that $R_U \cup R_V$ forms a biclique in $G$,
+		\item $S_U \subseteq U \setminus R_U$ and $S_V \subseteq V \setminus R_V$, where  $S_U = N(R_V)$, and $S_V = N(R_U)$
+		\item For every $(p,q)$-biclique $B_U \cup B_V$ in $G$, there exists a unique subspace $(R_U, R_V, S_U, S_V) \in \mathbb{S}_{p,q}(G)$ such that: $R_U \subseteq B_U, \\  R_V \subseteq B_V ,  B_U \setminus R_U \subseteq S_U, \text{and} B_U \setminus R_V \subseteq S_V.$
+	\end{itemize}
+\end{definition}
+
+Note that, for counting the number of $(p,q)$-bicliques in $G$, it is enough to store the cardinalities $|R_U|$ and $|R_V|$ within $\mathbb{S}_{p,q}(G)$, rather than explicitly storing the sets $R_U$ and $R_V$. However, if the goal is to sample and report the bicliques, then it is necessary to store the sets $R_U$ and $R_V$ explicitly.
+
+From the definition of the BC-Shadow, the count of $(p,q)$-bicliques in $G$ can be computed as:
+\[
+\text{cnt}_{p,q}(G) = \sum_{(R_U, R_V, S_U, S_V) \in \mathbb{S}_{p,q}(G)} \text{cnt}_{p - |R_U|, q - |R_V|}(S_U, S_V)
+\]
+
+In agorithm \ref{alg:framework}, \shadow is initialized as $\{(\emptyset,\emptyset,U,V )\}$ and continously refined until stopping condition is met (Lines1--6). Which means that while $R_U$ and $R_V$ expand $S_U$ and $S_V$ shrink which result in increasing the bicilique denisity in the sampling space.
+
+\red{give an example}
+
+\begin{lemma}
+	Lines 1--6 of Algorithm~\ref{alg:framework} correctly construct a valid BC-Shadow according to Definition~3.1.
+\end{lemma}
+
+\begin{proof}
+	We prove by induction that after each iteration, the set $\mathbb{S}$ satisfies the conditions of Definition~3.1. Initially, $\mathbb{S} = \{ (\emptyset, \emptyset, U, V) \}$, which satisfies the conditions: since $R_U = \emptyset$ and $R_V = \emptyset$, $R_U \times R_V$ trivially satisfies the biclique condition (no edges exist to violate it); every vertex in $S_U = U$ is adjacent to all vertices in $R_V = \emptyset$ (vacuously true), and similarly for $S_V$ and $R_U$; and every $(p,q)$-biclique in $G$ is contained within $R_U \cup S_U = U$ and $R_V \cup S_V = V$. For the inductive step, assume $\mathbb{S}$ satisfies Definition~3.1 before refinement. During refinement, for each edge $(u, v) \in E$ with $u \in S_U$ and $v \in S_V$, we create a new subspace $(R_U', R_V', S_U', S_V')$ where $R_U' = R_U \cup \{ u \}$ and $R_V' = R_V \cup \{ v \}$; since $u$ is adjacent to $v$, and by the adjacency properties of $S_U$ and $S_V$, $R_U' \times R_V'$ forms a biclique. The updated shadow sets $S_U'$ and $S_V'$ consist of vertices adjacent to all of $R_V'$ and $R_U'$, satisfying the second condition. The uniqueness condition holds because any $(p,q)$-biclique extending from $(R_U, R_V)$ will be captured in exactly one of the new subspaces based on the ordering of vertices, ensuring no biclique is missed or duplicated. Therefore, after each iteration, $\mathbb{S}$ remains a valid BC-Shadow, and Lines 1--6 correctly construct it.
+\end{proof}

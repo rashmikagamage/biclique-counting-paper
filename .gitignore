@@ -1,0 +1,29 @@
+# Ignore intermediate LaTeX files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.run.xml
+*.nav
+*.snm
+*.cut
+
+# Ignore files produced by BibTeX
+*.bbl
+*.blg
+
+# Ignore backup files
+*~
+*.bak
+
+# Ignore build folders
+_build/
+output/

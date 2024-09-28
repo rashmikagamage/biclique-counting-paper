@@ -1,0 +1,176 @@
+%%%%%%%%%%%%%% Modified Algorithm Package %%%%%%%%%%%%%%%%%
+\let\algorithm\relax
+\let\endalgorithm\relax
+
+\usepackage[
+%algochapter,
+resetcount,
+algoruled,
+%longend,
+linesnumbered,
+%lined
+vlined
+]{algorithm2e}
+
+\SetKw{OR}{or}
+\SetKw{AND}{and}
+\SetKw{NOT}{not}
+
+\SetKw{TRUE}{true}
+\SetKw{FALSE}{false}
+\SetKw{NULL}{nil}
+
+\SetKw{KwDownto}{downto}
+
+% the default [longend] texts really suck, so here are my definitions
+\SetKwIF{gIf}{gElsIf}{gElse}{if}{then}{else if}{else}{end if}%
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{end if}%
+\SetKwFor{For}{for}{do}{end for}%
+\SetKwFor{ForPar}{for}{do in parallel}{end for}%
+\SetKwFor{ForEach}{for each}{do}{end for}%
+\SetKwFor{ForAll}{forall}{do}{end for}%
+\SetKwFor{While}{while}{do}{end while}%
+\SetKw{Break}{break\;}%
+
+\newcommand{\State}[1]{#1\;}
+\newcommand{\StateCmt}[2]{% statement (#1) with comment (#2)
+	#1; \tcc*[f]{#2}\;
+}
+%% this command is not well implemented (buggy or ugly)
+\newcommand{\CmtState}[2]{% comment (#2) and then statement (#1)
+	\tcc*[f]{#2} #1\;
+}
+
+\newcommand{\Comment}[1]{%
+	\tcc{\footnotesize #1}
+}
+
+%% global (default) setting
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\SetKwInput{KwDescription}{Description}
+
+%% change the default style of \Return: (1) make text appearing in normal font, and (2) add ;
+\renewcommand{\Return}[1]{\State{\textbf{return} #1}}
+
+\let\oldnl\nl% Store \nl in \oldnl
+\newcommand{\nonl}{\renewcommand{\nl}{\let\nl\oldnl}}% Remove line number for one line
+
+%%%%%%%%%%%%%%%%%%% End of Modified Algorithm Package %%%%%%%%%%%%%%%%%
+
+%\newcommand{\nthesection}{\arabic{section}}
+
+%\newcounter{example}[section]
+%\renewcommand{\theexample}{\nthesection.\arabic{example}}
+%\newenvironment{example}{
+	%     \refstepcounter{example}
+	%     {\goodbreak\vspace{1ex} \noindent\bf  Example  \theexample:}}{
+	%     \eot\vspace{1ex}\goodbreak} %\hspace*{\fill}\vspace*{1ex}}
+
+	%\newcounter{definition}[section]
+	%\renewcommand{\thedefinition}{\nthesection.\arabic{definition}}
+	%\newenvironment{definition}{
+%     \refstepcounter{definition}
+%     {\goodbreak\vspace{1ex} \noindent\bf Definition  \thedefinition:}}{
+%     \hspace*{\fill}\vspace*{1ex}\goodbreak}
+
+%\newcounter{theorem}[section]
+%\renewcommand{\thetheorem}{\nthesection.\arabic{theorem}}
+%\newenvironment{theorem}{\begin{em}
+	%        \refstepcounter{theorem}
+	%        {\goodbreak\vspace{1ex} \noindent\bf  Theorem  \thetheorem:}}{
+	%        \end{em} \hspace*{\fill}\vspace*{1ex}\goodbreak}
+
+	%\newcounter{lemma}[section]
+	%\renewcommand{\thelemma}{\nthesection.\arabic{lemma}}
+	%\newenvironment{lemma}{\begin{em}
+	%        \refstepcounter{lemma}
+	%        {\goodbreak\vspace{1ex}\noindent\bf Lemma \thelemma:}}{
+	%		\end{em} \hspace*{\fill}\vspace*{1ex}\goodbreak}
+
+	%\newcounter{property}[section]
+	%\renewcommand{\theproperty}{\nthesection.\arabic{property}}
+	%\newenvironment{property}{\begin{em}
+	%        \refstepcounter{property}
+	%        {\goodbreak\vspace{1ex}\noindent\bf Property \theproperty:}}{
+	%		\end{em} \hspace*{\fill}\vspace*{1ex}\goodbreak}
+
+	%\newcounter{corollary}[section]
+	%\renewcommand{\thecorollary}{\nthesection.\arabic{corollary}}
+	%\newenvironment{corollary}{\begin{em}
+	%        \refstepcounter{corollary}
+	%        {\goodbreak\vspace{1ex}\noindent\bf Corollary \thecorollary:}}{
+	%		\end{em} \hspace*{\fill}\vspace*{1ex}\goodbreak}
+
+
+	\newcommand{\proofsketch}{\noindent{\bf Proof Sketch: }}
+	\newcommand{\myproof}{\noindent\textbf{\em Proof: }}
+
+
+	% End of proof
+	\newcommand{\eot}{\hspace*{\fill}\mbox{$\Box$}}
+	% \newcommand{\eop}{\hspace*{\fill}\mbox{$\blacksquare$}}
+	\newcommand{\eop}{\hspace*{\fill}\mbox{$\Box$}\vspace*{1ex}\goodbreak}
+
+	% Small Title
+	\newcommand{\stitle}[1]{\vspace{1ex} \noindent{\bf #1}}
+
+	\newcommand{\kk}[1]{{\ensuremath {\mathtt{#1}}}\xspace}
+	\newcommand{\kw}[1]{{\ensuremath {\mathsf{#1}}}\xspace}
+
+	\newcommand{\la}{\leftarrow}
+	\newcommand{\ra}{\rightarrow}
+
+	\newcommand{\cfig}{Figure~}
+	\newcommand{\ctab}{Table~}
+	\newcommand{\csec}{Section~}
+	\newcommand{\cdef}{Definition~}
+	\newcommand{\calg}{Algorithm~}
+	\newcommand{\cthm}{Theorem~}
+	\newcommand{\clem}{Lemma~}
+	\newcommand{\cexm}{Example~}
+	\newcommand{\cpro}{Property~}
+	\newcommand{\cequ}[1]{Equation~(#1)}
+
+	\newcommand{\ie}{{i.e.}}
+	\newcommand{\eg}{{e.g.}}
+
+	\newcommand{\cal}{\mathcal}
+	\newcommand{\bigo}{ {\cal O}}
+
+	\newcommand{\norm}[1]{\lVert#1\rVert}
+	\newcommand{\bicliques}{{$(p,q)$-bicliques }}
+		\newcommand{\biclique}{{$(p,q)$-biclique }}
+	\newcommand{\estcnt}{{\widehat{cnt}_{p,q}(G) }}
+		\newcommand{\cnt}{{cnt_{p,q}(G) }}
+	\newcommand{\red}[1]{\textcolor{red}{#1}}
+	\newcommand{\bicliqedensity}{$\mathcal{\hat{B}} $ }
+	\newcommand{\bicliqedensityG}{$\mathcal{\hat{B}}(G)$ }
+\newcommand{\sampelspace}{\mathcal{S}_{p,q}(G)}
+\newcommand{\shadow}{$\mathbb{S}_{p,q}(G)$ }
+\newcommand{\zstars}{$h$-zstars }
+\newcommand{\zstar}{$h$-zstar }
+\newcommand{\z}{$Z^* $ }
+\newcommand{\zstarpq}{Z_{(p,q)} }
+\newcommand{\bicliquecount}{$cnt_{(p,q)}$}
+\newcommand{\tcnt}{\widetilde{cnt}}
+\newcommand{\setbiclique}{\mathcal{B}_{p,q}}
+\newcommand{\setzstar}{\Delta (G)}
+\newcommand{\bicliquedensityshadow}{\mu_{\mathcal{S}{p,q}}}
+
+\newcommand{\subspace}{(R_U, R_V, S_U, S_V)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

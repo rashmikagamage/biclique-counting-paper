@@ -1,0 +1,83 @@
+%
+%\begin{algorithm}[]
+%	\DontPrintSemicolon
+%
+%	\caption{BicliqueEstimation2($\mathbb{S},p,q,\epsilon,\delta$)}
+%	\label{BicliqueEstimation}
+%	\KwIn{ Shadow $\mathbb{S} $ integers $p,q $, error parameters$\epsilon,\delta$ and a rough esitmation for the $(p,q)$-biclique density $  \tilde{\mu}$ }
+%	\KwOut{$\tcnt_{(p,q)}(G)$ }
+%
+%	$s \gets 0; s_{est} \gets 0; t \gets 0$ \\
+%	$t_b \gets \frac{\gamma}{\tilde{\mu}}$ \\
+%	constuct alias structure for sampling sub spaces \\
+%	\While{ $s < \gamma $   }{
+%
+%%		\For{\textbf{each} subsapce ($R_U,R_V,S_U,S_V) \in \mathbb{S}$} {
+%%			initialize $c_{(R_U,R_V,S_U,S_V)} \gets 0$
+%%		}
+%	sample a subspace (($R_U,R_V,S_U,S_V,\ddot{\mu}))  \in \mathbb{S}$ with probability $\frac{\mathcal{P}_{(p-|R_U|,q-|R_V|)}(S_U,S_V)}
+%	{|\samplespace|}$
+%%		\For{$i \gets 1$ to $t_b$}{
+%%
+%%
+%%			$c_{(R_U,R_V,S_U,S_V)} \gets   c_{(R_U,R_V,S_U,S_V)} + 1 $
+%%		}
+%
+%		\For{\textbf{each} subsapce ($R_U,R_V,S_U,S_V) \in \mathbb{S}$ with  $c_{(R_U,R_V,S_U,S_V)} > 0$} {
+%			\red{how to construct the alias structure here}
+%
+%			\For{$i \gets 1$ to $c_{(R_U,R_V,S_U,S_V)} > 0$}{
+%				sample an element P u.a.r. from  $|\mathcal{P}_{(p-|R_U|,q-|R_V|)}(S_U,S_V)$\\
+%
+%				\If{ P formas a biclique in G} {
+%					$s \gets s + C_{(p-|R_U|,q-|R_V|)} /$ \red{todo here}
+%					$s_{est} \gets s_{est} + C_{(p-|R_U|,q-|R_V|)} $
+%				}
+%				$t \gets t + 1$
+%			}
+%		}
+%
+%	}
+%	\red{correct this}\\
+%	$\tcnt_{(p,q)}(G) \gets  |\samplespace|  \cdot \frac{s}{t} $\\
+%	\Return{$\tcnt_{(p,q)}(G) $}
+%\end{algorithm}
+
+
+\subsection{Estimating Bicliques}
+
+
+
+\begin{algorithm}[]
+	\DontPrintSemicolon
+
+	\caption{BicliqueEstimation2($\mathbb{S},p,q,\epsilon,\delta$)}
+	\label{bcefinal}
+	\KwIn{ Shadow $\mathbb{S} $ integers $p,q $, error parameters $\epsilon,\delta$ }
+	\KwOut{$\tcnt_{(p,q)}(G)$ }
+
+$s \gets 0;\ t \gets 0$\;
+
+$\gamma = 1 + \frac{4(1+\epsilon)(e -2)\ln(2/\delta)}{\epsilon^2}$\;
+
+\While{$s < \gamma$}{
+	Sample a subspace $(R_U, R_V, S_U, S_V, \ddot{\mu}) \in \mathbb{S}$ with probability $\dfrac{|\mathcal{P}_{(p - |R_U|, q - |R_V|)}(S_U, S_V)|}{|\sampelspace|}$\;
+
+	Sample an element $P$ uniformly at random from $\mathcal{P}_{(p - |R_U|, q - |R_V|)}(S_U, S_V)$\;
+
+	\If{$P$ forms a biclique in $G$}{
+		$s \gets s + 1$\;
+	}
+	$t \gets t + 1$\;
+}
+$\estcnt \gets |\sampelspace| \cdot \dfrac{s}{t}$\;
+\Return{$\estcnt$}
+
+\end{algorithm}
+
+
+
+The final algorithm for estimating the number of $(p,q)$-bicliques is shown in Algorithm~\ref{bcefinal}.The algorithm proceeds by repeatedly sampling elements from the overall sample space until the number of successful samples $s$ reaches the threshold $\gamma$ (Lines 3 8). In each iteration, a subspace $(R_U, R_V, S_U, S_V, \ddot{\mu})$ is selected from the shadow $\mathbb{S}$ with probability proportional to the size of its corresponding sampling space $\mathcal{P}_{(p - |R_U|, q - |R_V|)}(S_U, S_V)$ relative to the total sample space size $|\sampelspace|$ (Line 4). This weighted sampling ensures that every potential $(p,q)$-biclique in the total sample space has an equal probability of being selected, maintaining uniformity across the entire sample space.
+
+Once a subspace is selected, an element $P$ is sampled uniformly at random from $\mathcal{P}_{(p - |R_U|, q - |R_V|)}(S_U, S_V)$ (Line 5). This element represents a $p-|R_U|$-zstar.We then check whether the sampled element $P$ forms a biclique in $G$ (Line 6). If it does, we increment the successful sample counter $s$ (Line 7). Regardless of whether $P$ forms a biclique, we increment the total sample counter $t$ (Line 8). This process continues until the number of successful samples $s$ reaches the threshold $\gamma$ (Line 3), ensuring that sufficient evidence has been gathered to achieve the desired estimation accuracy.After obtaining the required number of successful samples, we compute the estimate $\estcnt$ of the total number of $(p,q)$-bicliques (Line 9). This estimate is calculated by scaling the ratio of successful samples to total samples by the size of the overall sample space $|\sampelspace|$.Finally, the algorithm returns this estimate $\estcnt$ (Line 10), which, due to the properties of the sampling method and the stopping condition, satisfies the accuracy and confidence guarantees specified by the error parameters $\epsilon$ and $\delta$.
+

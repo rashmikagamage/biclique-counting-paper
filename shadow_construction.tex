@@ -1,0 +1,207 @@
+
+
+%	\section*{Balancing the Running Time of the Two Stages}
+%
+%
+	\begin{algorithm}[]
+		\DontPrintSemicolon
+
+		\caption{BC-ShadowConstruction($G (U,V,E),p,q,\epsilon,\gamma$)}
+		\label{algo::BC-ShadowConstruction}
+		\KwIn{ Bipartite Graph $G (U,V,E)$ integers $p,q$ and error parameters $\epsilon,\delta$}
+		\KwOut{Shadow $\mathbb{S}$}
+		Arrange $U$ and $V$ in some order
+
+	 $ \tcnt_{p,q}(G)\gets 1; $   $|\sampelspace| \gets |\mathcal{P}_{(p,q)}(G)|$ ;
+		$\tilde{T}_{sample} \gets \infty$ \\
+		$\mathbb{S} \gets  \{(\emptyset,\emptyset,U,V,\tcnt_{p,q}(G) / |\sampelspace|)\}$
+
+		\While{ \text{ElapsedTime()}  $ < \gamma \cdot \frac{|\sampelspace| }{\tcnt_{(p,q)}(G)} \cdot \tilde{T}_{sample} $    }{
+
+			($R_U,R_V,S_U,S_V,\ddot{\mu}) \gets \text{arg min}_{(R'_U,R'_V,S'_U,S'_V,\ddot{\mu}') \in \mathbb{S}}$ $ \ddot{\mu}';$ \\
+			Remove  ($R_U,R_V,S_U,S_V,\ddot{\mu}) $ from $\mathbb{S};$
+			$\tcnt_{(p,q)}(G) \gets \tcnt_{(p,q)}(G) -  |\mathcal{P}_{(p,q)}(S_U,S_V)| \cdot \ddot{\mu};$\\
+			$|\sampelspace)| \gets |\sampelspace| - \mathcal{P}_{(p,q)}(S_U,S_V);$
+
+			\If{$R_U = \emptyset$}{ $n_{sample} \gets 0; T_{total} \gets 0 $ }
+
+			\For{\textbf{each} $ u \in S_U$}{
+				\For{\textbf{each} $ v \in N_u(S_V)$}{
+					($R'_U,R'_V,S'_U,S'_V,\ddot{\mu}$) $\gets$  ($R_U \cup u , R_V \cup v, N_v(S_U),N_u(S_V) $); \\
+					$\ddot{\mu}' \gets \text{auxiliary $(p-|R'_U|,q-|R'_V|)$-biclique density in $(S'_U,S'_V)$ }$ from $\hat{n}$ samples; \\
+					Add ($R'_U,R'_V,S'_U,S'_V,\ddot{\mu}'$) to $\mathbb{S};$ \\
+					$\tcnt_{(p,q)}(G) \gets \tcnt_{(p,q)}(G) + |\mathcal{P}_{(p-|R'_U|,q-|R'_V|)}(S'_U,S'_V)| \cdot \ddot{\mu}'; $ \\
+					$|\sampelspace| \gets  |\sampelspace| +  |\mathcal{P}_{(p-|R'_U|,q-|R'_V|)}(S'_U,S'_V)|;$\\
+					$S_V \gets S_V \backslash v;$
+
+					\If{ $S_U = \emptyset$}{
+						$n_{sample} \gets n_{sample} + \hat{n}$ \\
+						$T_{total} \gets T_{total}$ + running time of Line 13
+					}
+				}
+				$S_U \gets S_U \backslash u;$
+			}
+
+		}
+		\Return{$\mathbb{S}$}
+	\end{algorithm}
+%
+%
+%	In our biclique counting algorithm, achieving optimal efficiency hinges on balancing the computational efforts between Stage I (sample space construction) and Stage II (sampling to estimate the biclique count). An imbalance, where one stage consumes significantly more time than the other, can lead to unnecessary computational overhead and inefficient resource utilization.
+%
+%	If we spend too little time refining the sample space in Stage I, the sample space $\sampelspace$ remains large and contains many non-biclique elements, resulting in a low biclique density $ \mu_{S_{p,q}(G)} $. Consequently, Stage II will require a larger number of samples to achieve the desired estimation accuracy, increasing the total running time. Conversely, over-refinement in Stage I can lead to excessive computational time without proportionate gains in reducing the sample space or increasing the biclique density.
+%
+%	To strike a balance, we propose a strategy that dynamically decides when to stop refining the sample space based on the estimated running time of Stage II. The goal is to minimize the total running time by ensuring that the time spent in both stages is approximately equal. The expected running time of Stage II depends on the number of samples required, determined by the desired estimation accuracy, and the average time per sample, which includes the time taken to draw a sample and verify if it forms a biclique.
+%
+%
+%	\[
+%	\gamma = 1 + \frac{4(1+\epsilon)(e - 2)\ln(2/\delta)}{\epsilon^2},
+%	\]
+%
+%	where $ \epsilon $ and $ \delta $ are the relative error and failure probability parameters, respectively, and $ e $ is Euler's number. The biclique density of the sample space is $ \mu_{S_{p,q}(G)} = \frac{\text{cnt}_{p,q}(G)}{|S_{p,q}(G)|} $, and $ T_{\text{sample}} $ represents the average time to sample an element from $ S_{p,q}(G) $ and check if it forms a biclique.
+%
+%	According to the stopping rule of our estimator (Algorithm 3), we require at least $ \gamma $ successful samples—that is, samples that are actual bicliques—to guarantee the estimation accuracy. The expected total number of samples $ t $ needed is $ t \approx \frac{\gamma}{\mu_{S_{p,q}(G)}} $. Therefore, the expected running time of Stage II is:
+%
+%	\[
+%	\text{Expected Running Time of Stage II} = t \times T_{\text{sample}} = \frac{\gamma \times T_{\text{sample}}}{\mu_{S_{p,q}(G)}}.
+%	\]
+%
+%	Our balancing strategy involves estimating $ \mu_{S_{p,q}(G)} $ and $ T_{\text{sample}} $ during the sample space refinement in Stage I. We decide to stop refining the sample space when the expected additional time spent in Stage I is no longer justified by the decrease in Stage II's running time. Formally, we stop refining when:
+%
+%	\[
+%	\text{Elapsed Time in Stage I} \geq \frac{\gamma \times T_{\text{sample}}}{\tilde{\mu}},
+%	\]
+%	where $ \tilde{\mu} $ is the estimated biclique density of the current sample space.
+%
+%	To estimate $ \tilde{\mu} $, we use auxiliary sampling during Stage I. For each subspace $ (R_U, R_V, S_U, S_V) $ in the BC-Shadow $ S_{p,q}(G) $, we draw a small number of random samples from $ P_{p', q'}(S_U, S_V) $, where $ p' = p - |R_U| $ and $ q' = q - |R_V| $. We calculate the proportion of these samples that form valid bicliques to estimate the subspace density $ \mu' $. We then compute $ \tilde{\mu} $ as a weighted average of the subspace densities:
+%
+%	\[
+%	\tilde{\mu} = \frac{\sum\limits_{(R_U, R_V, S_U, S_V)} |P_{p', q'}(S_U, S_V)| \times \mu'}{\sum\limits_{(R_U, R_V, S_U, S_V)} |P_{p', q'}(S_U, S_V)|}.
+%	\]
+%
+%	To estimate $ T_{\text{sample}} $, we measure the total time taken during the auxiliary sampling to draw and verify samples, and divide it by the number of samples to get the average sampling time:
+%
+%	\[
+%	T_{\text{sample}} = \frac{\text{Total Sampling Time}}{\text{Number of Samples}}.
+%	\]
+%
+%	To effectively increase $ \mu_{S_{p,q}(G)} $ and reduce the expected number of samples in Stage II, we prioritize refining subspaces with the lowest estimated biclique densities $ \mu' $, as improving these will have the most significant impact on increasing the overall sample space density. After each refinement, we update $ \tilde{\mu} $ and reassess the stopping condition, ensuring that we capture the diminishing returns of further refinements.
+%
+%	The stopping condition for Stage I is thus:
+%
+%	\[
+%	\text{Elapsed Time in Stage I} \geq \frac{\gamma \times T_{\text{sample}}}{\tilde{\mu}}.
+%	\]
+%
+%	This condition ensures that we halt the refinement process when additional efforts in Stage I no longer result in proportionate decreases in Stage II's running time. By balancing the computational load between the two stages, we achieve an efficient overall algorithm.
+%
+%	By adopting this balancing strategy, we optimize resource utilization by preventing one stage from becoming a bottleneck, improve scalability by enabling the algorithm to handle larger graphs without excessive computations in either stage, and maintain estimation accuracy within a reasonable total running time. In summary, balancing the running time between Stage I and Stage II is crucial for the practical efficiency of our biclique counting algorithm. By estimating the expected running time of Stage II and dynamically adjusting the refinement process in Stage I, we achieve a harmonious balance that minimizes the total computational effort without compromising accuracy.
+
+
+\subsection{Balancing the Running Time of the Two Stages}
+
+
+
+If we spend minimal time refining the sample space in Stage I, the sample space $ S_{p,q}(G) $ remains large and contains many elements that do not form bicliques. This results in a low biclique density $ \mu_{S_{p,q}(G)} $, causing Stage II to require a large number of samples to achieve the desired estimation accuracy. Conversely, if we over-invest time in refining $ S_{p,q}(G) $, Stage I becomes time-consuming without proportionate benefits, as the gains in increasing $ \mu_{S_{p,q}(G)} $ diminish with each refinement.
+
+To address this, we propose a strategy that dynamically balances the running time between the two stages by determining an optimal point at which to stop refining the sample space and begin sampling. This balance ensures that neither stage disproportionately dominates the total running time, optimizing the algorithm's overall efficiency.
+
+\subsubsection{Estimating the Expected Running Time of Stage II}
+
+The expected running time of Stage II depends on:
+\begin{itemize}
+	\item \textbf{The number of samples required}: Determined by the desired estimation accuracy and the biclique density of the sample space.
+	\item \textbf{The average time per sample} $ T_{\text{sample}} $: Time taken to draw a sample from $ S_{p,q}(G) $ and verify whether it forms a biclique.
+\end{itemize}
+
+Following from the stopping rule theorem, the expected number of samples $ t $ taken when the sampling algorithm terminates is approximately:
+
+\[
+t \approx \frac{\gamma}{\mu_{S_{p,q}(G)}}
+\]
+
+where $ \gamma = 1 + \frac{4(1+\epsilon)(e - 2)\ln(2/\delta)}{\epsilon^2} $, $ \epsilon $ and $ \delta $ are the relative error and confidence parameters, and $ e $ is Euler's number.
+
+Therefore, the expected running time of Stage II is:
+
+\[
+\text{Expected Running Time of Stage II} \approx \frac{\gamma}{\mu_{\mathcal{S}_{p,q}(G)}} \times T_{\text{sample}}
+\tag{8}
+\]
+
+This equation indicates that as the biclique density $ \mu_{S_{p,q}(G)} $ increases, the expected running time of Stage II decreases, and vice versa.
+
+\subsubsection{Effect of Refinement on Biclique Density}
+
+We observe that each refinement of a sample subspace of the BC-Shadow $ S_{p,q}(G) $ reduces the size of the corresponding sample space and, consequently, increases the biclique density $ \mu_{S_{p,q}(G)} $. This is formalized in the following lemma.
+
+\begin{lemma}
+	Assuming that the same ordering of vertices is used in defining $ P_{p-|R_U|, q-|R_V|}(S_U, S_V) $ for different subspaces of $ S_{p,q}(G) $, and that vertices are processed in the same order during refinement, each refinement of a sample subspace of $ S_{p,q}(G) $ results in a smaller sample space and an increased biclique density.
+\end{lemma}
+
+\begin{proof}
+	Suppose a subspace $ (R_U, R_V, S_U, S_V) $ is refined into \\ $\{(R_{U_i}, R_{V_i}, S_{U_i}, S_{V_i})\}_{i=1}^l $ by the refinement process. We need to show that:
+
+	\[
+	\bigcup_{i=1}^l S_{p,q}(R_{U_i}, R_{V_i}, S_{U_i}, S_{V_i}) \subseteq S_{p,q}(R_U, R_V, S_U, S_V)
+	\]
+
+	This means that the refined sample spaces are subsets of the original sample space. Additionally, since the sample spaces do not overlap due to the ordering, we have:
+
+	\[
+	S_{p,q}(R_{U_i}, R_{V_i}, S_{U_i}, S_{V_i}) \cap S_{p,q}(R_{U_j}, R_{V_j}, S_{U_j}, S_{V_j}) = \emptyset \quad \text{for } i \neq j
+	\]
+
+	Thus, each refinement reduces the size of the sample space, and since the number of bicliques remains the same or decreases less rapidly, the biclique density $ \mu_{S_{p,q}(G)} $ increases.
+\end{proof}
+
+\subsubsection{Balancing Strategy}
+
+If we stop Stage I immediately after initializing $ S_{p,q}(G) $ as $ \{(\emptyset, \emptyset, U, V)\} $, Stage I will be very efficient, but Stage II will require a long time due to the low biclique density. Conversely, extensive refinement in Stage I will increase $ \mu_{S_{p,q}(G)} $ but also significantly increase the time spent in Stage I.
+
+To determine when to stop refining and proceed to Stage II, we need to estimate the expected running time of Stage II without actually executing it. We can compute $ \gamma $ since $ \epsilon $ and $ \delta $ are input parameters, and $ T_{\text{sample}} $ can be estimated by sampling a few elements from $ S_{p,q}(G) $ and measuring the average time. However, estimating $ \mu_{S_{p,q}(G)} $ is challenging since it is the very quantity we aim to estimate.To address this challenge, we propose computing an auxiliary estimation $ \tilde{\mu} $ for $ \mu_{S_{p,q}(G)} $. Unlike the final estimate, $ \tilde{\mu} $ does not require strict theoretical accuracy guarantees, as its sole purpose is to influence the running time, rather than the accuracy of the final biclique count $\cnt$. However, in order to compute $ \tilde{\mu} $ effectively, certain conditions must be met. Specifically, we require a sampling structure where each biclique in the graph corresponds uniquely to a sampling structure, ensuring that $ \tilde{\mu} $ remains within the range $ [0, 1] $.  Our novel sampling structure facilitates this, enabling us to maintain this condition and thereby compute $\tilde{\mu}$ accurately and efficiently.
+
+\subsubsection{Construction Stopping Condition}
+
+Our construction stopping condition is:
+
+\[
+\text{Elapsed Time in Stage I} \geq \gamma \times \frac{ \tilde{T}_{\text{sample}}}{\tilde{\mu}}
+\]
+
+where $ \tilde{T}_{\text{sample}} $ is the estimated average time per sample, and $ \tilde{\mu} $ is the auxiliary estimation of the biclique density.
+
+\subsubsection{Computing the Auxiliary Estimation $ \tilde{\mu} $}
+
+As the sample space $ S_{p,q}(G) $ changes dynamically during refinement, we need to continuously estimate $ \tilde{\mu} $. For each subspace $ (R_U, R_V, S_U, S_V) \in S $, we estimate the biclique density $ \mu' $ within that subspace by:
+
+\begin{itemize}
+	\item Sampling a small number of elements uniformly at random from $ P_{p', q'}(S_U, S_V) $, where $ p' = p - |R_U| $ and $ q' = q - |R_V| $.
+	\item Calculating $ \mu' $ as the proportion of these samples that form bicliques in $ G $.
+	\item Estimating the biclique count in the subspace as $ \text{cnt}_{p',q'}(S_U, S_V) \approx |P_{p', q'}(S_U, S_V)| \times \mu' $.
+\end{itemize}
+
+We store $ \mu' $ along with the subspace and update $\tcnt_{(p,q)}(G)$ and sample space size accordingly:
+
+\[
+\tcnt_{(p,q)}(G) = \sum_{(R_U, R_V, S_U, S_V, \mu') \in S} |P_{p', q'}(S_U, S_V)| \times \mu'
+\]
+
+\[
+|S_{p,q}(G)| = \sum_{(R_U, R_V, S_U, S_V) \in S} |P_{p', q'}(S_U, S_V)|
+\]
+
+The auxiliary estimation of the biclique density is then:
+
+\[
+\tilde{\mu} = \frac{\text{cnt}_{p,q}(G)}{|\sampelspace|}
+\]
+
+\subsubsection{The Pseudocode of Shadow Construction}
+
+Based on the above discussions, the pseudocode of our shadow construction algorithm for biclique counting is presented in Algorithm~\ref{algo::BC-ShadowConstruction}. The algorithm takes a bipartite graph $G(U, V, E)$, integers $p$, $q$, and error parameters $\epsilon$, $\delta$ as input, and outputs a shadow $\mathbb{S}$.
+
+The initialization phase begins by arranging the vertices in $U$ and $V$ in some order to facilitate efficient sampling and refinement (Line 1). The initial count $\tcnt_{p,q}(G)$ is set to 1, and the size of the sample space $|S_{p,q}(G)|$ is initialized to $|\mathcal{P}_{p,q}(G)|$ (Lines 2–3). The value of $\tilde{T}_{\text{sample}}$ is initially set to infinity, and the shadow $\mathbb{S}$ is initialized with the full vertex sets $U$ and $V$, along with the initial estimation of $\mu$ (Line 4).
+
+In the refinement loop (Lines 5–24), the algorithm continues refining the shadow as long as the elapsed time is less than the estimated running time of Stage II (Line 5). At each iteration, the subspace $(R_U, R_V, S_U, S_V, \mu)$ with the smallest $\mu$ is selected for refinement (Line 6). The algorithm updates $\tcnt_{p,q}(G)$ and the size of the sample space $|S_{p,q}(G)|$ by removing the contribution of the selected subspace (Lines 7–8). For each $u \in S_U$ and $v \in N_u(S_V)$, new subspaces are created by extending $R_U$ and $R_V$, and auxiliary information is computed to estimate the biclique density $\mu'$ in the new subspaces using a small sample size (Lines 11–13). These new subspaces are added back to the shadow $\mathbb{S}$, and the values of $\tcnt_{p,q}(G)$ and $|S_{p,q}(G)|$ are updated accordingly (Lines 14–15). The processed vertices are removed from $S_U$ and $S_V$ (Lines 16–17), and after processing the initial subspaces, the algorithm estimates $\tilde{T}_{\text{sample}}$ based on the total sampling time and number of samples (Lines 21–22). This approach ensures efficient refinement of the subspaces while maintaining computational feasibility during the sampling process.
+

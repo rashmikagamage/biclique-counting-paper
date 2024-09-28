@@ -1,0 +1,72 @@
+\subsection{Sampling Stopping Condition}
+
+\red{writting as a generalised version, should it be written specifically for the sampling structure.}
+\label{sec:sampling-stopping-condition}
+
+In this subsection, we focus on the accuracy of our estimation, which is determined by \textbf{Stage II} of our algorithm.
+
+
+The existing algorithm \cite{zigzag} requires the user to specify the number of samples $t$ to be drawn uniformly at random from $\sampelspace$. As this value is set manually,It cannot provide any formal guarantees on the accuracy of the estimates. To address this issue, we propose a different strategy for determining when to stop the sampling process. Specifically, we fix the required number$ s $ of successful samples $s$ (i.e., samples that correspond to actual$ (p,q) $-bicliques), and continue sampling from $ \sampelspace $ until $ s $ successful samples have been collected.We then estimate the biclique count $\cnt$ using $\estcnt = |\sampelspace| \cdot \frac{s}{t} $, where $t$ is the total number of samples drawn.
+
+Based on the stopping rule theorem \cite{stoppingrule}, the estimation accuracy is guaranteed when the number of successful samples $s$ satisfies $ s \geq \gamma $, where
+\[
+\gamma = 1 + \frac{4(1+\epsilon)(e -2)\ln(2/\delta)}{\epsilon^2},
+\]
+where $ e $ is Euler's number. We will use the parameter $ \gamma $ for the quantity $1 + \frac{4(1+\epsilon)(e -2)\ln(2/\delta)}{\epsilon^2}$ throughout the remainder of the paper.
+
+\begin{algorithm}[]
+	\DontPrintSemicolon
+	\caption{BicliqueEstimation($ \sampelspace, p, q, \epsilon, \delta $)}
+	\label{alg:sr-biclique-estimator}
+	\KwIn{$\sampelspace$, integers $ p, q $, error parameters $ \epsilon \in (0,1) $ and $ \delta \in (0,1) $}
+	\KwOut{An estimate $ \estcnt $ of $ \cnt $}
+	$ s \leftarrow 0; \quad t \leftarrow 0; $
+
+	$ \gamma \leftarrow 1 + \dfrac{4(1+\epsilon)(e -2)\ln(2/\delta)}{\epsilon^2}; $
+
+	\While{$ s < \gamma $}{
+		Sample an element $A$ u.a.r. from $\sampelspace $;\;
+		\If{ $A$ forms a $(p,q)$-biclique in $G$}{
+			$ s \leftarrow s + 1; $
+		}
+		$ t \leftarrow t + 1; $
+	}
+	\Return$ \estcnt \leftarrow |\sampelspace| \cdot \dfrac{s}{t}; $
+\end{algorithm}
+
+\begin{theorem}
+	Let $ \estcnt $ be the estimate returned by Algorithm~\ref{alg:sr-biclique-estimator}. Then, $P\left( |\estcnt - \cnt| > \epsilon \cdot \cnt \right) \leq \delta$.and the expected number of samples $ E[t] $ satisfies $\dfrac{\gamma \cdot |\sampelspace|}{\cnt} \leq E[t] < \dfrac{(\gamma + 1) \cdot |\sampelspace|}{\cnt}$.
+
+\end{theorem}
+
+\begin{proof}
+Since each sample from $ \sampelspace $ is drawn uniformly at random, and $\dfrac{s}{t} $ is the proportion of successful samples, $\dfrac{s}{t}$ is an unbiased estimator of the biclique density $ \mu_{\sampelspace} = \dfrac{\cnt}{|\sampelspace|} $.
+
+By applying the stopping rule theorem (e.g., see \cite{stoppingrule}), we have that the estimator $ \estcnt = |\sampelspace| \cdot \dfrac{s}{t} $ satisfies the desired accuracy guarantee when $ s \geq \gamma $.
+
+The bounds on $ \mathbb{E}[t] $ follow from standard properties of negative binomial sampling, where the expected number of trials to achieve $ s $ successes in Bernoulli trials with success probability $ \mu_{\sampelspace} $ is $ E[t] = \dfrac{s}{\mu_{\sampelspace}} $. Substituting $ \mu_{\sampelspace} = \dfrac{\cnt}{|\sampelspace|} $ and $ s \geq \gamma $ yields the desired bounds.
+
+\end{proof}
+
+%
+%\begin{proof}
+%	Each sample from $ \sampelspace $ is drawn uniformly at random, and the proportion of successful samples $ \frac{s}{t} $ is an unbiased estimator of the biclique density $ \mu_{\sampelspace} = \frac{\cnt}{|\sampelspace|} $. Therefore, the estimator $ \estcnt = |\sampelspace| \cdot \frac{s}{t} $ is unbiased, i.e., $ \mathbb{E}[ \estcnt ] = \cnt $.
+%
+%	Applying the stopping rule theorem \cite{stoppingrule}, when we collect $ s \geq \gamma $ successful samples, the probability that $ \estcnt $ deviates from $ \cnt $ by more than $ \epsilon \cdot \cnt $ is at most $ \delta $:
+%	\[
+%	\Pr\left( | \estcnt - \cnt | > \epsilon \cdot \cnt \right) \leq \delta.
+%	\]
+%
+%	For the expected number of samples $ E[t] $, since the number of trials needed to achieve $ s $ successes in Bernoulli trials with success probability $ \mu_{\sampelspace} $ follows a negative binomial distribution, we have:
+%	\[
+%	E[t] = \frac{s}{\mu_{\sampelspace}} = \frac{s \cdot |\sampelspace|}{\cnt}.
+%	\]
+%	Using $ s \geq \gamma $ and $ s < \gamma + 1 $, we obtain the bounds:
+%	\[
+%	\frac{\gamma \cdot |\sampelspace|}{\cnt} \leq E[t] < \frac{(\gamma + 1) \cdot |\sampelspace|}{\cnt}.
+%	\]
+%	This completes the proof.
+%\end{proof}
+
+The accuracy guarantee remains valid regardless of the specific sample space $ \sampelspace $, provided it includes all possible $ (p,q) $-bicliques in $ G $. However, different constructions of $ \sampelspace $ will influence the biclique density $ \mu_{\sampelspace} $, which in turn impacts the expected running time of the algorithm. In the following subsection, we will explore methods for constructing $ \sampelspace $ that aim to optimize the overall performance of the algorithm by balancing the computational workload between \textbf{Stage I} (sample space construction) and \textbf{Stage II} (sampling and estimation).
+
